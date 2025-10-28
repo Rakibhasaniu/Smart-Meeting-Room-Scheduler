@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from 'http-status';
 import { Types } from 'mongoose';
 import AppError from '../../errors/AppError';
@@ -125,7 +126,7 @@ const updateBooking = async (
     throw new AppError(httpStatus.NOT_FOUND, 'Booking not found!');
   }
 
-  if (booking.user.toString() !== userId) {
+  if ((booking.user as any)._id ? (booking.user as any)._id.toString() !== userId : booking.user.toString() !== userId) {
     throw new AppError(httpStatus.FORBIDDEN, 'You can only update your own bookings!');
   }
 
@@ -218,7 +219,7 @@ const cancelBooking = async (id: string, userId: string) => {
     throw new AppError(httpStatus.NOT_FOUND, 'Booking not found!');
   }
 
-  if (booking.user.toString() !== userId) {
+  if ((booking.user as any)._id ? (booking.user as any)._id.toString() !== userId : booking.user.toString() !== userId) {
     throw new AppError(httpStatus.FORBIDDEN, 'You can only cancel your own bookings!');
   }
 

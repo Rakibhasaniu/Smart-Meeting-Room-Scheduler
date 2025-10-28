@@ -14,16 +14,17 @@ export interface TTimeSlot {
 }
 
 export interface TBooking {
-  room: Types.ObjectId;        
-  date: Date;                  
-  timeSlot: TTimeSlot;        
-  purpose: string;             
-  attendees: number;           
-  status: TBookingStatus;      
-  approvedBy?: Types.ObjectId; 
-  rejectionReason?: string;    
-  totalCost: number;           
-  isDeleted: boolean;    
+  room: Types.ObjectId;
+  user: Types.ObjectId;
+  date: Date;
+  timeSlot: TTimeSlot;
+  purpose: string;
+  attendees: number;
+  status: TBookingStatus;
+  approvedBy?: Types.ObjectId;
+  rejectionReason?: string;
+  totalCost: number;
+  isDeleted: boolean;
 }      
 
 export interface BookingModel extends Model<TBooking> {
