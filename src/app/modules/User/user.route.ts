@@ -8,49 +8,14 @@ import { UserValidation } from './user.validation';
 
 const router = express.Router();
 
-// router.post(
-//   '/create-student',
-//   auth(USER_ROLE.ADMIN),
-//   upload.single('file'),
-//   (req: Request, res: Response, next: NextFunction) => {
-//     req.body = JSON.parse(req.body.data);
-//     next();
-//   },
-//   validateRequest(createStudentValidationSchema),
-//   UserControllers.createStudent,
-// );
-
-// router.post(
-//   '/create-faculty',
-//   auth(USER_ROLE.ADMIN),
-//   upload.single('file'),
-//   (req: Request, res: Response, next: NextFunction) => {
-//     req.body = JSON.parse(req.body.data);
-//     next();
-//   },
-//   validateRequest(createFacultyValidationSchema),
-//   UserControllers.createFaculty,
-// );
-
-// router.post(
-//   '/create-admin',
-//   auth(USER_ROLE.ADMIN),
-//   upload.single('file'),
-//   (req: Request, res: Response, next: NextFunction) => {
-//     req.body = JSON.parse(req.body.data);
-//     next();
-//   },
-//   validateRequest(createAdminValidationSchema),
-//   UserControllers.createAdmin,
-// );
-
-router.post(
-  '/change-status/:id',
+// Get all users (Admin only)
+router.get(
+  '/',
   auth(USER_ROLE.ADMIN),
-  validateRequest(UserValidation.changeStatusValidationSchema),
-  UserControllers.changeStatus,
+  UserControllers.getAllUsers,
 );
 
+// Get current user profile (All authenticated users)
 router.get(
   '/me',
   auth(
@@ -60,6 +25,32 @@ router.get(
     USER_ROLE.ADMIN,
   ),
   UserControllers.getMe,
+);
+
+router.get(
+  '/:id',
+  auth(USER_ROLE.ADMIN),
+  UserControllers.getUserById,
+);
+
+router.patch(
+  '/update-role/:id',
+  auth(USER_ROLE.ADMIN),
+  validateRequest(UserValidation.updateRoleValidationSchema),
+  UserControllers.updateUserRole,
+);
+
+router.patch(
+  '/change-status/:id',
+  auth(USER_ROLE.ADMIN),
+  validateRequest(UserValidation.changeStatusValidationSchema),
+  UserControllers.changeStatus,
+);
+
+router.delete(
+  '/:id',
+  auth(USER_ROLE.ADMIN),
+  UserControllers.deleteUser,
 );
 
 export const UserRoutes = router;

@@ -3,40 +3,7 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { UserServices } from './user.service';
 
-// TODO: Uncomment after creating respective modules
-// const createStudent = catchAsync(async (req, res) => {
-//   const { password, student: studentData } = req.body;
 
-//   const result = await UserServices.createStudentIntoDB(
-//     req.file,
-//     password,
-//     studentData,
-//   );
-
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: 'Student is created successfully',
-//     data: result,
-//   });
-// });
-
-// const createFaculty = catchAsync(async (req, res) => {
-//   const { password, faculty: facultyData } = req.body;
-
-//   const result = await UserServices.createFacultyIntoDB(
-//     req.file,
-//     password,
-//     facultyData,
-//   );
-
-//   sendResponse(res, {
-//     statusCode: httpStatus.OK,
-//     success: true,
-//     message: 'Faculty is created successfully',
-//     data: result,
-//   });
-// });
 
 // const createAdmin = catchAsync(async (req, res) => {
 //   const { password, admin: adminData } = req.body;
@@ -55,14 +22,51 @@ import { UserServices } from './user.service';
 //   });
 // });
 
-const getMe = catchAsync(async (req, res) => {
-  const { userId, role } = req.user;
-  const result = await UserServices.getMe(userId, role);
+const getAllUsers = catchAsync(async (req, res) => {
+  const result = await UserServices.getAllUsers();
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Users are retrieved successfully',
+    data: result,
+  });
+});
+
+const getUserById = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await UserServices.getUserById(id);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: 'User is retrieved successfully',
+    data: result,
+  });
+});
+
+const getMe = catchAsync(async (req, res) => {
+  const { email } = req.user;
+  const result = await UserServices.getMe(email);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'User is retrieved successfully',
+    data: result,
+  });
+});
+
+const updateUserRole = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { role } = req.body;
+
+  const result = await UserServices.updateUserRole(id, role);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'User role is updated successfully',
     data: result,
   });
 });
@@ -79,10 +83,26 @@ const changeStatus = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
+const deleteUser = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const result = await UserServices.deleteUser(id);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'User is deleted successfully',
+    data: result,
+  });
+});
+
 export const UserControllers = {
-  // createStudent,
-  // createFaculty,
   // createAdmin,
+  getAllUsers,
+  getUserById,
   getMe,
+  updateUserRole,
   changeStatus,
+  deleteUser,
 };

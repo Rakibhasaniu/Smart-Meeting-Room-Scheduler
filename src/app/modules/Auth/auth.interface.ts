@@ -1,5 +1,4 @@
 export type TRegisterUser = {
-  id: string;
   email: string;
   password: string;
   name: string;

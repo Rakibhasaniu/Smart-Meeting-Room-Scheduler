@@ -10,12 +10,23 @@ const userValidationSchema = z.object({
     .optional(),
 });
 
+const updateRoleValidationSchema = z.object({
+  body: z.object({
+    role: z.enum(['USER', 'MANAGER', 'CEO', 'ADMIN'], {
+      required_error: 'Role is required',
+      invalid_type_error: 'Role must be USER, MANAGER, CEO, or ADMIN',
+    }),
+  }),
+});
+
 const changeStatusValidationSchema = z.object({
   body: z.object({
     status: z.enum([...UserStatus] as [string, ...string[]]),
   }),
 });
+
 export const UserValidation = {
   userValidationSchema,
+  updateRoleValidationSchema,
   changeStatusValidationSchema,
 };

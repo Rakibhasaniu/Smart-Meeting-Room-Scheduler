@@ -3,10 +3,9 @@ import { USER_ROLE } from '../modules/User/user.constant';
 import { User } from '../modules/User/user.model';
 
 const superUser = {
-  id: '0001',
-  email: 'abedinforhan@gmail.com',
+  email: 'rakib@gmail.com',
   password: config.super_admin_password,
-  name: 'Super Admin',
+  name: 'Rakib Hasan',
   needsPasswordChange: false,
   role: USER_ROLE.ADMIN,
   status: 'active',
@@ -14,11 +13,18 @@ const superUser = {
 };
 
 const seedSuperAdmin = async () => {
-  //when database is connected, we will check is there any user who is admin
-  const isSuperAdminExits = await User.findOne({ role: USER_ROLE.ADMIN });
+  try {
+    //when database is connected, we will check is there any user who is admin
+    const isSuperAdminExits = await User.findOne({ role: USER_ROLE.ADMIN });
 
-  if (!isSuperAdminExits) {
-    await User.create(superUser);
+    if (!isSuperAdminExits) {
+      await User.create(superUser);
+      console.log('✅ Admin user created:', superUser.email);
+    } else {
+      console.log('ℹ️  Admin user already exists:', isSuperAdminExits.email);
+    }
+  } catch (error) {
+    console.log('❌ Error seeding admin:', error);
   }
 };
 

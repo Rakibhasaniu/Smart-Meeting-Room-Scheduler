@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import bcrypt from 'bcrypt';
 import httpStatus from 'http-status';
 import jwt, { JwtPayload } from 'jsonwebtoken';
@@ -15,7 +16,6 @@ const registerUser = async (payload: TRegisterUser) => {
   }
 
   const newUser = await User.create({
-    id: payload.id,
     email: payload.email,
     password: payload.password,
     name: payload.name,
@@ -25,7 +25,8 @@ const registerUser = async (payload: TRegisterUser) => {
   });
 
   const jwtPayload = {
-    userId: newUser.id,
+    userId: newUser._id.toString(),
+    email: newUser.email,
     role: newUser.role,
   };
 
@@ -45,7 +46,7 @@ const registerUser = async (payload: TRegisterUser) => {
     accessToken,
     refreshToken,
     user: {
-      id: newUser.id,
+      _id: newUser._id,
       email: newUser.email,
       name: newUser.name,
       role: newUser.role,
@@ -71,7 +72,8 @@ const loginUser = async (payload: TLoginUser) => {
 
 
   const jwtPayload = {
-    userId: user.id,
+    userId: (user as any)._id.toString(),
+    email: user.email,
     role: user.role,
   };
 
@@ -98,7 +100,7 @@ const changePassword = async (
   userData: JwtPayload,
   payload: { oldPassword: string; newPassword: string },
 ) => {
-  const user = await User.isUserExistsByCustomId(userData.userId);
+  const user = await User.isUserExistsByEmail(userData.email);
 
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'This user is not found !');
@@ -140,7 +142,7 @@ const refreshToken = async (token: string) => {
 
   const { userId, iat } = decoded;
 
-  const user = await User.isUserExistsByCustomId(userId);
+  const user = await User.isUserExistsByEmail(decoded.email);
 
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'This user is not found !');
@@ -160,7 +162,8 @@ const refreshToken = async (token: string) => {
   }
 
   const jwtPayload = {
-    userId: user.id,
+    userId: (user as any)._id.toString(),
+    email: user.email,
     role: user.role,
   };
 
@@ -175,8 +178,8 @@ const refreshToken = async (token: string) => {
   };
 };
 
-const forgetPassword = async (userId: string) => {
-  const user = await User.isUserExistsByCustomId(userId);
+const forgetPassword = async (email: string) => {
+  const user = await User.isUserExistsByEmail(email);
 
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'This user is not found !');
@@ -187,7 +190,8 @@ const forgetPassword = async (userId: string) => {
     throw new AppError(httpStatus.FORBIDDEN, 'This user is deleted !');
   }
   const jwtPayload = {
-    userId: user.id,
+    userId: (user as any)._id.toString(),
+    email: user.email,
     role: user.role,
   };
 
@@ -197,15 +201,15 @@ const forgetPassword = async (userId: string) => {
     '10m',
   );
 
-  const resetUILink = `${config.reset_pass_ui_link}?id=${user.id}&token=${resetToken} `;
+  const resetUILink = `${config.reset_pass_ui_link}?email=${user.email}&token=${resetToken} `;
   console.log(resetUILink);
 };
 
 const resetPassword = async (
-  payload: { id: string; newPassword: string },
+  payload: { email: string; newPassword: string },
   token: string,
 ) => {
-  const user = await User.isUserExistsByCustomId(payload?.id);
+  const user = await User.isUserExistsByEmail(payload?.email);
 
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'This user is not found !');
@@ -220,10 +224,8 @@ const resetPassword = async (
     config.jwt_access_secret as string,
   ) as JwtPayload;
 
-  //localhost:3000?id=A-0001&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJBLTAwMDEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MDI4NTA2MTcsImV4cCI6MTcwMjg1MTIxN30.-T90nRaz8-KouKki1DkCSMAbsHyb9yDi0djZU3D6QO4
-
-  if (payload.id !== decoded.userId) {
-    console.log(payload.id, decoded.userId);
+    if (payload.email !== decoded.email) {
+    console.log(payload.email, decoded.email);
     throw new AppError(httpStatus.FORBIDDEN, 'You are forbidden!');
   }
 
@@ -234,7 +236,7 @@ const resetPassword = async (
 
   await User.findOneAndUpdate(
     {
-      id: decoded.userId,
+      email: decoded.email,
       role: decoded.role,
     },
     {
