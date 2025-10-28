@@ -14,11 +14,6 @@ const roomSchema = new Schema<TRoom, RoomModel>(
       unique: true,
       trim: true,
     },
-    floor: {
-      type: Number,
-      required: [true, 'Floor number is required'],
-      min: [0, 'Floor number cannot be negative'],
-    },
     capacity: {
       type: Number,
       required: [true, 'Capacity is required'],
@@ -32,6 +27,16 @@ const roomSchema = new Schema<TRoom, RoomModel>(
     amenities: {
       type: [String],
       default: [],
+    },
+    equipment: {
+      type: [String],
+      required: [true, 'Equipment list is required'],
+      default: [],
+    },
+    location: {
+      type: String,
+      required: [true, 'Location is required'],
+      trim: true,
     },
     description: {
       type: String,

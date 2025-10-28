@@ -4,9 +4,10 @@ import { Model } from 'mongoose';
 export interface TRoom {
   name: string;
   roomNumber: string;
-  floor: number;
   capacity: number;
   pricePerHour: number;
+  equipment: string[];
+  location: string;
   amenities: string[];
   description?: string;
   imageUrl?: string;

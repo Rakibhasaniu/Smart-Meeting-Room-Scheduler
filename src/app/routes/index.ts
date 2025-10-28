@@ -4,6 +4,7 @@ import { RoomRoutes } from '../modules/Room/room.route';
 import { UserRoutes } from '../modules/User/user.route';
 import { BookingRoutes } from '../modules/Booking/booking.route';
 import { SlotRoutes } from '../modules/Slot/slot.route';
+import { AllocationRoutes } from '../modules/RoomAllocation/allocation.route';
 
 const router = Router();
 
@@ -23,6 +24,10 @@ const moduleRoutes = [
   {
     path: '/slots',
     route: SlotRoutes,
+  },
+  {
+    path: '/room-allocation',
+    route: AllocationRoutes,
   },
   {
     path: '/bookings',

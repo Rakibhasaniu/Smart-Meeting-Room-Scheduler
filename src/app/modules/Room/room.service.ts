@@ -19,7 +19,7 @@ const getAllRooms = async (query: Record<string, unknown>) => {
     capacity,
     pricePerHour,
     amenities,
-    floor,
+    location,
     isAvailable,
     search
   } = query;
@@ -34,8 +34,8 @@ const getAllRooms = async (query: Record<string, unknown>) => {
     filter.pricePerHour = { $lte: Number(pricePerHour) };
   }
 
-  if (floor) {
-    filter.floor = Number(floor);
+  if (location) {
+    filter.location = { $regex: location, $options: 'i' };
   }
 
   if (isAvailable !== undefined) {
@@ -53,10 +53,11 @@ const getAllRooms = async (query: Record<string, unknown>) => {
     filter.$or = [
       { name: { $regex: search, $options: 'i' } },
       { roomNumber: { $regex: search, $options: 'i' } },
+      { location: { $regex: search, $options: 'i' } },
     ];
   }
 
-  const result = await Room.find(filter).sort({ floor: 1, roomNumber: 1 });
+  const result = await Room.find(filter).sort({ location: 1, roomNumber: 1 });
   return result;
 };
 
