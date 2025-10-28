@@ -128,13 +128,14 @@ const isTimeSlotAvailable = async (
   for (const booking of conflictingBookings) {
     const bookingStart = new Date(booking.date);
     const [startHour, startMinute] = booking.timeSlot.startTime.split(':').map(Number);
-    bookingStart.setHours(startHour, startMinute, 0, 0);
+    bookingStart.setUTCHours(startHour, startMinute, 0, 0);
 
     const bookingEnd = new Date(booking.date);
     const [endHour, endMinute] = booking.timeSlot.endTime.split(':').map(Number);
-    bookingEnd.setHours(endHour, endMinute, 0, 0);
+    bookingEnd.setUTCHours(endHour, endMinute, 0, 0);
 
-  
+    // Check for overlap including buffer
+    // Two time ranges overlap if: start1 < end2 AND start2 < end1
     const hasOverlap = startWithBuffer < bookingEnd && bookingStart < endWithBuffer;
 
     if (hasOverlap) {
