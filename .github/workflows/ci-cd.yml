@@ -112,7 +112,7 @@ jobs:
           platforms: linux/amd64
 
       - name: Image digest
-        run: echo ${{ steps.meta.outputs.tags }}
+        run: echo "Docker images pushed successfully!"
 
   docker-compose-test:
     name: Test Docker Compose Setup
