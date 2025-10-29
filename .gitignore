@@ -1,3 +1,15 @@
 node_modules
 dist
 .env
+
+# Test coverage
+coverage
+*.lcov
+
+# Test logs
+server.log
+*.log
+
+# IDE
+.vscode
+.idea
