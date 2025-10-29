@@ -1,6 +1,9 @@
 node_modules
 dist
 .env
+.env.local
+.env.development
+.env.production
 
 # Test coverage
 coverage
@@ -13,3 +16,7 @@ server.log
 # IDE
 .vscode
 .idea
+
+docker-compose.override.yml
+.docker/
+*.log
