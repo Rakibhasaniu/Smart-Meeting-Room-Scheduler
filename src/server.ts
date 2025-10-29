@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import app from './app';
 import seedSuperAdmin from './app/DB';
 import config from './app/config';
+import { startAutoReleaseCronJob } from './app/services/autoRelease.service';
 
 let server: Server;
 
@@ -11,6 +12,9 @@ async function main() {
     await mongoose.connect(config.database_url as string);
 
     await seedSuperAdmin();
+
+    // Start auto-release cron job
+    startAutoReleaseCronJob();
 
     server = app.listen(config.port, () => {
       console.log(`App is listening on port ${config.port}`);
