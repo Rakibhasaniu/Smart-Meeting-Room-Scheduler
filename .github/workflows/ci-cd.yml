@@ -1,0 +1,192 @@
+name: Test, Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ping: 1})'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Run tests
+        run: npm test
+        env:
+          NODE_ENV: test
+          DATABASE_URL: mongodb://localhost:27017/meeting-room-test
+          JWT_ACCESS_SECRET: test-jwt-access-secret-key-for-ci
+          JWT_ACCESS_EXPIRES_IN: 1d
+          JWT_REFRESH_SECRET: test-jwt-refresh-secret-key-for-ci
+          JWT_REFRESH_EXPIRES_IN: 30d
+          BCRYPT_SALT_ROUNDS: 10
+          SUPER_ADMIN_PASSWORD: test-admin-password
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+        continue-on-error: true
+
+      - name: Archive test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: coverage/
+          retention-days: 7
+
+  build:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_HUB_USERNAME }}/meeting-room-scheduler
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/meeting-room-scheduler:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/meeting-room-scheduler:buildcache,mode=max
+          platforms: linux/amd64
+
+      - name: Image digest
+        run: echo ${{ steps.meta.outputs.tags }}
+
+  docker-compose-test:
+    name: Test Docker Compose Setup
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          cat > .env << EOF
+          NODE_ENV=production
+          PORT=5005
+          DATABASE_URL=mongodb://admin:testpass123@mongo:27017/meeting-room-scheduler?authSource=admin
+          MONGO_USERNAME=admin
+          MONGO_PASSWORD=testpass123
+          MONGO_DB=meeting-room-scheduler
+          JWT_ACCESS_SECRET=test-jwt-access-secret-for-docker-compose
+          JWT_ACCESS_EXPIRES_IN=30d
+          JWT_REFRESH_SECRET=test-jwt-refresh-secret-for-docker-compose
+          JWT_REFRESH_EXPIRES_IN=365d
+          BCRYPT_SALT_ROUNDS=12
+          SUPER_ADMIN_PASSWORD=test-super-admin-pass
+          EOF
+
+      - name: Start services with Docker Compose
+        run: docker-compose up -d
+
+      - name: Wait for services to be ready
+        run: |
+          echo "Waiting for MongoDB to be ready..."
+          timeout 60 bash -c 'until docker-compose exec -T mongo mongosh --eval "db.runCommand({ping: 1})" &>/dev/null; do sleep 2; done'
+
+          echo "Waiting for app to be ready..."
+          sleep 30
+
+      - name: Check services are running
+        run: docker-compose ps
+
+      - name: Test API health endpoint
+        run: |
+          curl -f http://localhost:5005/ || exit 1
+          echo "✅ API is responding!"
+
+      - name: View app logs
+        if: always()
+        run: docker-compose logs app
+
+      - name: Cleanup
+        if: always()
+        run: docker-compose down -v
+
+  notify:
+    name: Notify Status
+    runs-on: ubuntu-latest
+    needs: [test, build, docker-compose-test]
+    if: always()
+
+    steps:
+      - name: Check overall status
+        run: |
+          if [ "${{ needs.test.result }}" == "success" ] && \
+             [ "${{ needs.build.result }}" == "success" ] && \
+             [ "${{ needs.docker-compose-test.result }}" == "success" ]; then
+            echo "✅ All jobs completed successfully!"
+            echo "🐳 Docker image pushed to Docker Hub"
+            echo "🚀 Ready for deployment"
+          else
+            echo "❌ Pipeline failed!"
+            echo "Test: ${{ needs.test.result }}"
+            echo "Build: ${{ needs.build.result }}"
+            echo "Docker Compose Test: ${{ needs.docker-compose-test.result }}"
+            exit 1
+          fi
