@@ -25,7 +25,7 @@ const router = express.Router();
  *             required:
  *               - name
  *               - roomNumber
- *               - floor
+ *               - location
  *               - capacity
  *               - pricePerHour
  *             properties:
@@ -35,20 +35,25 @@ const router = express.Router();
  *               roomNumber:
  *                 type: string
  *                 example: CR-101
- *               floor:
- *                 type: number
- *                 example: 1
+ *               location:
+ *                 type: string
+ *                 example: Building A - Floor 1
  *               capacity:
  *                 type: number
  *                 example: 10
  *               pricePerHour:
  *                 type: number
  *                 example: 50
+ *               equipment:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["projector", "whiteboard", "video-conf"]
  *               amenities:
  *                 type: array
  *                 items:
  *                   type: string
- *                 example: ["Projector", "Whiteboard", "Video Conference"]
+ *                 example: ["WiFi", "Coffee Machine", "Air Conditioning"]
  *               description:
  *                 type: string
  *                 example: Large conference room with modern amenities
@@ -87,10 +92,10 @@ router.post(
  *           type: number
  *         description: Maximum price per hour
  *       - in: query
- *         name: floor
+ *         name: location
  *         schema:
- *           type: number
- *         description: Floor number
+ *           type: string
+ *         description: Filter by location (e.g., "Building A" or "Floor 1")
  *       - in: query
  *         name: isAvailable
  *         schema:

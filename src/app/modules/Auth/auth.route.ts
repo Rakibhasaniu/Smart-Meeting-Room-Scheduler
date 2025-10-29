@@ -215,11 +215,12 @@ router.post(
  *           schema:
  *             type: object
  *             required:
- *               - id
+ *               - email
  *             properties:
- *               id:
+ *               email:
  *                 type: string
- *                 example: U-0001
+ *                 format: email
+ *                 example: user@example.com
  *     responses:
  *       200:
  *         description: Reset link sent successfully
@@ -264,12 +265,13 @@ router.post(
  *           schema:
  *             type: object
  *             required:
- *               - id
+ *               - email
  *               - newPassword
  *             properties:
- *               id:
+ *               email:
  *                 type: string
- *                 example: U-0001
+ *                 format: email
+ *                 example: user@example.com
  *               newPassword:
  *                 type: string
  *                 example: newpassword123

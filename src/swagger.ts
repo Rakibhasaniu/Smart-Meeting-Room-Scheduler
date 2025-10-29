@@ -16,7 +16,7 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: 'http://localhost:5000',
+        url: 'http://localhost:5005',
         description: 'Development server',
       },
       {
@@ -37,10 +37,10 @@ const options: swaggerJsdoc.Options = {
         User: {
           type: 'object',
           properties: {
-            id: {
+            _id: {
               type: 'string',
-              description: 'User ID',
-              example: 'U-0001',
+              description: 'User ID (MongoDB ObjectId)',
+              example: '507f1f77bcf86cd799439011',
             },
             email: {
               type: 'string',
@@ -79,13 +79,8 @@ const options: swaggerJsdoc.Options = {
         },
         RegisterRequest: {
           type: 'object',
-          required: ['id', 'email', 'password', 'name'],
+          required: ['email', 'password', 'name'],
           properties: {
-            id: {
-              type: 'string',
-              description: 'Unique user ID',
-              example: 'U-0001',
-            },
             email: {
               type: 'string',
               format: 'email',
@@ -250,5 +245,5 @@ export const setupSwagger = (app: Application): void => {
     res.send(swaggerSpec);
   });
 
-  console.log('📚 Swagger documentation available at http://localhost:5000/api-docs');
+  console.log('📚 Swagger documentation available at http://localhost:5005/api-docs');
 };
